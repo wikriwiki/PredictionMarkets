@@ -31,8 +31,7 @@ while next_cursor != "LTE=":
     # print(resp['data'][0]['question'])
     for resp_data in resp['data']:
         len_df = len(df_qd)
-        replaced_description = resp_data['description'].replace('\"','"')
-        df_qd.loc[len_df] = [resp_data['condition_id'], resp_data['question'], replaced_description, resp_data['end_date_iso']]
+        df_qd.loc[len_df] = [resp_data['condition_id'], resp_data['question'], resp_data['description'], resp_data['end_date_iso']]
 
 
     # for resp_data in resp['data']:
