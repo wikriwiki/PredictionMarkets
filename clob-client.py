@@ -60,6 +60,23 @@ class PolymarketClient:
         df_qd.to_csv('closed_questions_description.csv', index=False)
         print("Done!")
 
+    def save_all_closed_trump_questions(self):
+        next_cursor = ""
+        df_qd = pd.DataFrame(columns=['condition_id', 'question', 'description', 'end_date'])
+        while next_cursor != "LTE=":
+            time.sleep(0.5)
+            resp = self.client.get_markets(next_cursor = next_cursor)
+            next_cursor = resp['next_cursor']
+            for resp_data in resp['data']:
+                try:
+                    if "Trump" in resp_data["tags"] and resp_data['closed']:
+                        len_df = len(df_qd)
+                        df_qd.loc[len_df] = [resp_data['condition_id'], resp_data['question'], resp_data['description'], resp_data['end_date_iso']]
+                except:
+                    pass
+        df_qd.to_csv('closed_trump_questions_description.csv', index=False)
+        print("Done!")
+
     def get_market_data(self, condition_id):
         resp = self.client.get_market(condition_id)
         return resp
@@ -104,6 +121,6 @@ if __name__ == "__main__":
     client = PolymarketClient()
     # client.save_all_questions()
     # client.save_all_questions()
-    client.save_all_closed_questions()
+    client.save_all_closed_trump_questions()
     # print(json.dumps(client.get_market_data("0xa07f15fdd0baa90adf78bd4d66543083334a7e5235a95fa5f241c4e519ea83f6"), indent=4))
     # client.get_price("0x98d9781facbf448a67bd1e1e0d538b2afca6e538d73f278308d0211fbfc87c94","Yes")
