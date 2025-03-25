@@ -110,7 +110,44 @@ class PolymarketClient:
             return data
         else:
             print(f"Error {resp.status_code}: {resp.text}")
+            
+    def get_price_at_date(self, condition_id, outcome, target_date):
+        resp = self.client.get_market(condition_id)
+        token_id = ""
+        for resp_token in resp['tokens']:
+            if resp_token['outcome'] == outcome:
+                token_id = resp_token['token_id']
+                break
 
+        if not token_id:
+            return None
+
+        url = f"{self.client.host}/prices-history"
+        target_ts = utc_to_timestamp(target_date)
+        
+        params = {
+            "market": token_id,
+            "startTs": target_ts - 86400,  # 하루 전부터
+            "endTs": target_ts + 86400,    # 하루 후까지
+            "interval": "1h",
+            "fidelity": 60
+        }
+        
+        resp = requests.get(url, params=params)
+        if resp.status_code == 200:
+            data = resp.json()['history']
+            # 가장 가까운 시간대의 가격 찾기
+            closest_price = None
+            min_time_diff = float('inf')
+            
+            for price_point in data:
+                time_diff = abs(price_point['t'] - target_ts)
+                if time_diff < min_time_diff:
+                    min_time_diff = time_diff
+                    closest_price = price_point['p']
+            
+            return closest_price
+        return None
 # # Create and sign an order buying 100 YES tokens for 0.50c each
 # resp = client.create_and_post_order(OrderArgs(
 #     price=0.50,
