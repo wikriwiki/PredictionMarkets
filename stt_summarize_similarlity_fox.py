@@ -93,7 +93,7 @@ output_path = "content/video_data/"
 
 matching_list = [] # 매칭된 질문 리스트
 
-for i in tqdm(range(len(df_youtube))):
+for i in tqdm(range(3401,len(df_youtube))):
     yt_url = df_youtube['video_link'][i]
     title = df_youtube['title'][i]
     upload_date = pd.to_datetime(df_youtube['upload_date'][i])
