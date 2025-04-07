@@ -11,27 +11,17 @@ from tqdm import tqdm
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
 def download_video(url, output_path):
-    """
-    주어진 url에서 비디오를 다운로드하여 출력 경로에 저장합니다.
 
-    매개변수:
-    url (str): 다운로드할 비디오의 URL입니다.
-    output_path (str): 비디오를 저장할 경로입니다.
-
-    반환값:
-    dict: 비디오의 메타데이터가 포함된 사전입니다.
-    """
     # 경로 생성
     os.makedirs(output_path, exist_ok=True)
 
     
 
-    # 비디오 재생 시간 확인
+    
     command = f'yt-dlp --get-duration --cookies-from-browser firefox {url}'
     result = subprocess.run(command, shell=True, capture_output=True, text=True, check=True)
     duration = result.stdout.strip()
 
-    # 재생 시간이 1시간 이상인 경우 함수 종료
     time_parts = duration.split(':')
     if len(time_parts) == 3:
         hours, minutes, seconds = map(int, time_parts)
@@ -50,7 +40,7 @@ def download_video(url, output_path):
         return total_seconds
     
     else:
-        # yt-dlp 명령 실행
+       
         try:
             command = f'yt-dlp --force-overwrites -f "bestvideo[height=720]+bestaudio" --cookies-from-browser firefox -o "{output_path}/video2" {url}'
             subprocess.run(command, shell=True, check=True)
@@ -59,19 +49,7 @@ def download_video(url, output_path):
         except:
             return 3601
 
-    # # 메타데이터 추출
-    # video_title = subprocess.getoutput(f'yt-dlp --print "%(title)s" {url}')
-    # video_author = subprocess.getoutput(f'yt-dlp --print "%(uploader)s" {url}')
-    # video_views = subprocess.getoutput(f'yt-dlp --print "%(view_count)s" {url}')
-
-    # metadata = {
-    #     "Author": video_author.strip(),
-    #     "Title": video_title.strip(),
-    #     "Views": int(video_views.strip()) if video_views.strip().isdigit() else 0
-    # }
-
-    # return metadata
-
+   
 def speech_to_text(model, audio_path):
     result = model.transcribe(audio_path)
     return result["text"]
@@ -91,7 +69,7 @@ df_merged['end_date_x'] = pd.to_datetime(df_merged['end_date_x'])
 
 output_path = "content/video_data/"
 
-matching_list = [] # 매칭된 질문 리스트
+matching_list = [] 
 
 for i in tqdm(range(3401,len(df_youtube))):
     yt_url = df_youtube['video_link'][i]
