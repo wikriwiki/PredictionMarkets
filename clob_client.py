@@ -33,7 +33,7 @@ class PolymarketClient:
         self.client = ClobClient(host, key=key, chain_id=chain_id)
         self.client.set_api_creds(self.client.create_or_derive_api_creds())
 
-    def save_all_questions(self):
+    def save_all_questions(self, tags,filename):
         next_cursor = ""
         df_qd = pd.DataFrame(columns=['condition_id', 'question', 'description', 'end_date'])
         while next_cursor != "LTE=":
@@ -41,13 +41,13 @@ class PolymarketClient:
             resp = self.client.get_sampling_markets(next_cursor = next_cursor)
             next_cursor = resp['next_cursor']
             for resp_data in resp['data']:
-                if "Politics" in resp_data["tags"]:
+                if any(item in resp_data["tags"] for item in tags):
                     len_df = len(df_qd)
                     df_qd.loc[len_df] = [resp_data['condition_id'], resp_data['question'], resp_data['description'], resp_data['end_date_iso']]
-        df_qd.to_csv('questions_description.csv', index=False)
+        df_qd.to_csv(filename, index=False)
         print("Done!")
 
-    def save_all_closed_questions(self):
+    def save_all_closed_questions(self, tags,filename):
         next_cursor = ""
         df_qd = pd.DataFrame(columns=['condition_id', 'question', 'description', 'end_date'])
         while next_cursor != "LTE=":
@@ -56,12 +56,12 @@ class PolymarketClient:
             next_cursor = resp['next_cursor']
             for resp_data in resp['data']:
                 try:
-                    if "Politics" in resp_data["tags"] and resp_data['closed']:
+                    if any(item in resp_data["tags"] for item in tags) and resp_data['closed']:
                         len_df = len(df_qd)
                         df_qd.loc[len_df] = [resp_data['condition_id'], resp_data['question'], resp_data['description'], resp_data['end_date_iso']]
                 except:
                     pass
-        df_qd.to_csv('closed_questions_description.csv', index=False)
+        df_qd.to_csv(filename, index=False)
         print("Done!")
 
     def save_all_closed_trump_questions(self):
@@ -160,10 +160,10 @@ class PolymarketClient:
 
 if __name__ == "__main__":
     client = PolymarketClient()
+    # client.save_all_questions(["Politics","Economy"],"closed_question_politics_economy.csv")
     # client.save_all_questions()
-    # client.save_all_questions()
-    # client.save_all_closed_trump_questions()
-    # print(json.dumps(client.get_market_data("0x9ea20241be7a9bd20668563386a4d53dbd3ad5b05d16d5ac5264ebdbdeb3b0a0"), indent=4))
+    # client.save_all_closed_questions(["Politics","Economy"],"closed_question_politics_economy.csv")
+    print(json.dumps(client.get_market_data("0x22ef905d2c1f47b416c783a43cf06eea3cd73732ca0ed4d021aab8423924bdb3"), indent=4))
     # price_data = client.get_price("0x1f5e91cec5de2c58c8b51e5830819bbed6c0978dc05b964e4f432d7744977d2a","Yes")['history']
     # data_list = []
     # for i in price_data:
@@ -172,11 +172,11 @@ if __name__ == "__main__":
     #     data_list.append({'datetime': datetime_stamp, 'price': i['p']})
     # df_price = pd.DataFrame(data_list, columns=['datetime', 'price'])
     # df_price.to_csv("price.csv",index=False)
-    gamma = 'https://gamma-api.polymarket.com'
-    key = os.getenv("PK")
+    # gamma = 'https://gamma-api.polymarket.com'
+    # key = os.getenv("PK")
     
-    q = gamma + "/events?limit=3&closed=true&volume_min=100000"
+    # q = gamma + "/events?limit=3&closed=true&volume_min=100000"
 
-    resp = requests.get(q, headers={"Authorization": key})
-    print(json.dumps(resp.json(), indent=4))
+    # resp = requests.get(q, headers={"Authorization": key})
+    # print(json.dumps(resp.json(), indent=4))
 
