@@ -59,8 +59,8 @@ sentencoModel = SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2', de
 whisperModel = whisper.load_model("base")
 
 df_youtube = pd.read_csv('data/fox.csv')
-df_available = pd.read_csv('data/available.csv')
-df_closed_trump = pd.read_csv('closed_trump_questions_description.csv')
+df_available = pd.read_csv('data/available_politics_economy.csv')
+df_closed_trump = pd.read_csv('closed_questions_politics_economy.csv')
 
 df_merged = pd.merge(df_available, df_closed_trump, on='condition_id', how='inner')
 
@@ -107,10 +107,9 @@ for i in tqdm(range(3401,len(df_youtube))):
     df_similarity = pd.DataFrame(similarity_list)
     df_similarity = df_similarity.sort_values(by='similarity',ascending=False)
 
-    matching_questions = df_similarity[df_similarity['similarity'] > 0.4][['question', 'similarity']].to_dict('records')
+    matching_questions = df_similarity[df_similarity['similarity'] >= 0.6][['question', 'similarity']].to_dict('records')
     for matching_question in matching_questions:
-        matching_list.append({'title': title, 'url': yt_url, 'matching_questions': matching_question['question'], 'similarity': matching_question['similarity']})
-
-    df_matching = pd.DataFrame(matching_list,columns=['title','url','matching_questions','similarity'])
-    df_matching.to_csv('matching_questions_fox.csv',index=False)
+        matching_list.append({'title': title, 'url': yt_url, 'upload_date': upload_date,'matching_questions': matching_question['question'], 'similarity': matching_question['similarity'], "text":text})
+    df_matching = pd.DataFrame(matching_list,columns=['title','url','upload_date','matching_questions','similarity','text'])
+    df_matching.to_csv('matching_questions_politics_economy_fox.csv',index=False)
 

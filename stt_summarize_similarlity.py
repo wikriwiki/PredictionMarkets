@@ -52,7 +52,7 @@ def download_video(url, output_path):
     else:
         # yt-dlp 명령 실행
         try:
-            command = f'yt-dlp --force-overwrites -f "bestvideo[height=720]+bestaudio" --cookies-from-browser firefox -o "{output_path}/video" {url}'
+            command = f'yt-dlp --force-overwrites -f "bestvideo[height=240]+bestaudio" --cookies-from-browser firefox -o "{output_path}/video" {url}'
             subprocess.run(command, shell=True, check=True)
 
             return total_seconds
@@ -81,8 +81,8 @@ sentencoModel = SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2', de
 whisperModel = whisper.load_model("base")
 
 df_youtube = pd.read_csv('data/cnn.csv')
-df_available = pd.read_csv('data/available.csv')
-df_closed_trump = pd.read_csv('closed_trump_questions_description.csv')
+df_available = pd.read_csv('data/available_politics_economy.csv')
+df_closed_trump = pd.read_csv('closed_questions_politics_economy.csv')
 
 df_merged = pd.merge(df_available, df_closed_trump, on='condition_id', how='inner')
 
@@ -93,7 +93,7 @@ output_path = "content/video_data/"
 
 matching_list = [] # 매칭된 질문 리스트
 
-for i in tqdm(range(953,len(df_youtube))):
+for i in tqdm(range(len(df_youtube))):
     yt_url = df_youtube['video_link'][i]
     title = df_youtube['title'][i]
     upload_date = pd.to_datetime(df_youtube['upload_date'][i])
@@ -113,7 +113,7 @@ for i in tqdm(range(953,len(df_youtube))):
     text = speech_to_text(whisperModel,f"{output_path}/video.webm")
 
     print("Summarize...")
-    summary = summarizer(text, max_length=1024, min_length=30, do_sample=False,truncation=True)
+    summary = summarizer(text, max_length=256, min_length=30, do_sample=False,truncation=True)
     summ_text = summary[0]['summary_text']
 
     summ_emb = sentencoModel.encode(summ_text)
@@ -129,10 +129,10 @@ for i in tqdm(range(953,len(df_youtube))):
     df_similarity = pd.DataFrame(similarity_list)
     df_similarity = df_similarity.sort_values(by='similarity',ascending=False)
 
-    matching_questions = df_similarity[df_similarity['similarity'] > 0.4][['question', 'similarity']].to_dict('records')
+    matching_questions = df_similarity[df_similarity['similarity'] >= 0.6][['question', 'similarity']].to_dict('records')
     for matching_question in matching_questions:
-        matching_list.append({'title': title, 'url': yt_url, 'matching_questions': matching_question['question'], 'similarity': matching_question['similarity']})
+        matching_list.append({'title': title, 'url': yt_url, 'upload_date': upload_date,'matching_questions': matching_question['question'], 'similarity': matching_question['similarity'], "text":text})
 
-    df_matching = pd.DataFrame(matching_list,columns=['title','url','matching_questions','similarity'])
-    df_matching.to_csv('matching_questions.csv',index=False)
+    df_matching = pd.DataFrame(matching_list,columns=['title','url','upload_date','matching_questions','similarity','text'])
+    df_matching.to_csv('matching_questions_politics_economy.csv',index=False)
 
